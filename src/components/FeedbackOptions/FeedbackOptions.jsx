@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { BtnFeedBack } from './FeedBack.styled';
 
-export class FeedBack extends Component {
+export class FeedbackOptions extends Component {
 
     buttonsMarkup = (options, changeState) => {
 
