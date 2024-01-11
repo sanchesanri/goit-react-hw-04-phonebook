@@ -1,62 +1,94 @@
-import { Component } from 'react';
-import { Statistic } from './Statistics/Statistics';
-import { FeedbackOptions } from './FeedbackOptions/FeedbackOptions';
-import { Section } from './Section/Section';
-import { Notification } from './Notification/Notification';
+import React, { Component } from 'react';
+
+import { FormContact } from './FormContact/FormContact';
+import { ContactsList } from './ContactsList/ContactsList';
+import { ContactsFilter } from './ContactsFilter/ContactsFilter';
+
+const CONTACTSLOCALST = 'contacts';
 
 export class App extends Component {
   state = {
-    good: 0,
-    neutral: 0,
-    bad: 0,
+    contacts: [
+      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+      { id: 'id-2', name: 'Her Kline', number: '443-89-12' },
+      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+    ],
+    filter: '',
   };
 
-  changeStateValue = key => {
+  componentDidMount() {
+    if (!localStorage.getItem(CONTACTSLOCALST)) {
+      return;
+    }
+
+    const localData = localStorage.getItem(CONTACTSLOCALST);
+    this.setState({ contacts: JSON.parse(localData) });
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.contact !== this.state.contacts) {
+      localStorage.setItem(
+        CONTACTSLOCALST,
+        JSON.stringify(this.state.contacts)
+      );
+    }
+  }
+
+  handleAddContact = obj => {
+    if (this.isInContacts(obj)) {
+      return alert(`${obj.name} is already in contacts`);
+    }
+
     this.setState(prevState => ({
-      ...prevState,
-      [key]: prevState[key] + 1,
+      contacts: [...prevState.contacts, obj],
     }));
+    localStorage.setItem(CONTACTSLOCALST, JSON.stringify(this.state.contacts));
   };
 
-  countTotalFeedback = () => {
-    return Object.values(this.state).reduce((acc, item) => (acc += item), 0);
+  handlerFilterChange = event => {
+    this.setState({ filter: event.target.value });
   };
 
-  countPositiveFeedbackPercentage = () => {
-    const { good } = this.state;
+  isInContacts = ({ name }) => {
+    const { contacts } = this.state;
 
-    return this.countTotalFeedback() !== 0
-      ? Math.ceil((Number(good) * 100) / Number(this.countTotalFeedback()))
-      : 0;
+    return contacts.some(
+      contact => contact.name.toLowerCase() === name.toLowerCase()
+    );
+  };
+
+  handleDeleteContact = contactId => {
+    this.setState(prevState => {
+      return {
+        contacts: prevState.contacts.filter(
+          contact => contact.id !== contactId
+        ),
+      };
+    });
   };
 
   render() {
-    const { good, neutral, bad } = this.state;
-    return (
-      <>
-        <Section title="Please leave feedback">
-          <FeedbackOptions
-            options={this.state}
-            changeState={this.changeStateValue}
-          />
-        </Section>
+    const filteredContacts = this.state.contacts.filter(contact =>
+      contact.name.toLowerCase().includes(this.state.filter.toLowerCase())
+    );
 
-        <Section title="Statistic">
-          {this.countTotalFeedback() ? (
-            <ul>
-              <Statistic
-                good={good}
-                neutral={neutral}
-                bad={bad}
-                total={this.countTotalFeedback}
-                positivePercentage={this.countPositiveFeedbackPercentage}
-              />
-            </ul>
-          ) : (
-            <Notification message="There is no feedback"></Notification>
-          )}
-        </Section>
-      </>
+    return (
+      <div>
+        My phone book
+        <FormContact addContact={this.handleAddContact} />
+        <h2>Contacts</h2>
+        <ContactsFilter
+          dataContacts={this.state}
+          handlerFilterChange={this.handlerFilterChange}
+        />
+        {this.state.contacts.length > 0 && (
+          <ContactsList
+            options={filteredContacts}
+            handleDeleteContact={this.handleDeleteContact}
+          />
+        )}
+      </div>
     );
   }
 }
