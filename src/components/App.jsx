@@ -24,8 +24,6 @@ export function App() {
     }
 
     setContacts(prevState => [...prevState, obj]);
-
-    localStorage.setItem(CONTACTSLOCALST, JSON.stringify(contacts));
   };
 
   function isInContacts({ name }) {
@@ -39,9 +37,7 @@ export function App() {
   };
 
   const handleDeleteContact = contactId => {
-    setContacts(prevState =>
-      [...prevState].filter(contact => contact.id !== contactId)
-    );
+    setContacts(contacts.filter(contact => contact.id !== contactId));
   };
 
   const filteredContacts = contacts.filter(contact =>
